@@ -198,35 +198,8 @@ void init_func (void)
     gap_crement = 3;
     // initialize cuboid rotations
 
-    // init lighting
-    GLfloat ambient_lighte[4]= {0.2,0.2,0.2,1.0};
-    GLfloat diffuse_light[4]= {0.7,0.7,0.7,1.0};		// color
-    GLfloat specular_light[4]= {1.0, 1.0, 1.0, 1.0};	// brightness
-    GLfloat light_position[4]= {0.0, 50.0, 50.0, 1.0};
-
-    // material brightness capacity
-    GLfloat specularity[4]= {1.0,1.0,1.0,1.0};
-    GLint material_specularity = 60;
-
-    // black background
-    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-
     // Gouraud colorization model
     glShadeModel(GL_SMOOTH);
-
-    // material reflectability
-    glMaterialfv(GL_FRONT,GL_SPECULAR, specularity);
-    // brightness concentration
-    glMateriali(GL_FRONT,GL_SHININESS,material_specularity);
-
-    // activate ambient light
-    glLightModelfv(GL_LIGHT_MODEL_AMBIENT, ambient_lighte);
-
-    // define light parameters
-    glLightfv(GL_LIGHT0, GL_AMBIENT, ambient_lighte);
-    glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuse_light );
-    glLightfv(GL_LIGHT0, GL_SPECULAR, specular_light );
-    glLightfv(GL_LIGHT0, GL_POSITION, light_position );
 
     // enable changing material color
     glEnable(GL_COLOR_MATERIAL);
@@ -373,16 +346,12 @@ void keyboard(unsigned char key, int x, int y)
     case 'o':
         apply_rotation(90);
         break;
-
     // end of cube movements
 
     default:
         break;
-
     }
-
     glutPostRedisplay();
-
 }
 
 void mouse(int button, int state, int x, int y)
