@@ -1,177 +1,419 @@
-/*
- * GLUT Shapes Demo
- *
- * Written by Nigel Stewart November 2003
- *
- * This program is test harness for the sphere, cone
- * and torus shapes in GLUT.
- *
- * Spinning wireframe and smooth shaded shapes are
- * displayed until the ESC or q key is pressed.  The
- * number of geometry stacks and slices can be adjusted
- * using the + and - keys.
- */
 #include <windows.h>
-#ifdef __APPLE__
-#include <GLUT/glut.h>
-#else
+#include <GL/gl.h>
 #include <GL/glut.h>
-#endif
+#include <vector>
 
-#include <stdlib.h>
+using namespace std;
 
-static int slices = 16;
-static int stacks = 16;
-
-/* GLUT callback Handlers */
-
-static void resize(int width, int height)
+struct cube_rotate
 {
-    const float ar = (float) width / (float) height;
+    GLfloat angle, x, y, z;
+};
 
-    glViewport(0, 0, width, height);
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    glFrustum(-ar, ar, -1.0, 1.0, 2.0, 100.0);
+GLfloat angle, fAspect, cube_size;
+GLint rot_x, rot_y, crement, x_0, x_k, y_0, y_k, z_0, z_k, gap, gap_crement;
+//cube_rotate cube_rotations[3][3][3];
+vector<cube_rotate> cube_rotations[3][3][3];
 
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity() ;
+void load_visualization_parameters(void);
+
+void apply_rotation(GLfloat angle)
+{
+    vector<cube_rotate> face[3][3];
+    int index;
+    cube_rotate rotation;
+
+    // copy face to be rotated
+    // apply rotation to face
+    for(int i = 0; i < 3; ++i)
+        for(int j = 0; j < 3; ++j)
+        {
+
+            index = 2 - j%3;
+
+            if(x_0 == x_k)
+            {
+                rotation = {angle, 1.0, 0.0, 0.0};
+                face[index][i] = cube_rotations[x_k][i][j];
+            }
+
+            if(y_0 == y_k)
+            {
+                rotation = {angle, 0.0, 1.0, 0.0};
+                face[index][i] = cube_rotations[j][y_k][i];
+            }
+
+            if(z_0 == z_k)
+            {
+                rotation = {-1 * angle, 0.0, 0.0, 1.0};
+                face[index][i] = cube_rotations[j][i][z_k];
+            }
+
+            face[index][i].push_back(rotation);
+
+        }
+
+    // copy back rotated face
+    for(int i = 0; i < 3; ++i)
+        for(int j = 0; j < 3; ++j)
+        {
+            if(x_0 == x_k)
+                cube_rotations[x_k][i][j] = face[i][j];
+
+            if(y_0 == y_k)
+                cube_rotations[j][y_k][i] = face[i][j];
+
+            if(z_0 == z_k)
+                cube_rotations[j][i][z_k] = face[i][j];
+        }
+
 }
 
-static void display(void)
+// reset face selection parameters
+void reset_selected_face()
 {
-    const double t = glutGet(GLUT_ELAPSED_TIME) / 1000.0;
-    const double a = t*90.0;
+    x_0 = 0;
+    x_k = 2;
+    y_0 = 0;
+    y_k = 2;
+    z_0 = 0;
+    z_k = 2;
+}
+
+void set_camera()
+{
+    // titik awal
+    // (eye/center/up)
+    gluLookAt(200,200,200, 0,0,0, 0,1,0);
+}
+
+// membuat polygon
+void draw_cube(int x, int y, int z)
+{
+    vector<cube_rotate> lrot = cube_rotations[x][y][z];
+    glPushMatrix();
+
+    // translate to final position
+    glTranslatef((x - 1) * cube_size + x * gap, (y - 1) * cube_size + y * gap, (z - 1) * cube_size + z * gap);
+
+    // rotate cube to correct position
+    for(int i = lrot.size() - 1; i >= 0; --i)
+        glRotatef(lrot[i].angle, lrot[i].x, lrot[i].y, lrot[i].z);
+
+    glColor3f(1.0f, 0.0f, 0.0f); // memberi warna di titik polygon
+    glBegin(GL_QUADS);  // front
+    glNormal3f(0.0, 0.0, 1.0);  // face normal
+    glVertex3f(cube_size/2, cube_size/2, cube_size/2); // atas kiri
+    glVertex3f(-cube_size/2, cube_size/2, cube_size/2); // atas kanan
+    glVertex3f(-cube_size/2, -cube_size/2, cube_size/2); // bawah kanan
+    glVertex3f(cube_size/2, -cube_size/2, cube_size/2); // bawah kiri
+    glEnd();
+
+    glColor3f(1.0f, 0.5f, 0.0f); // memberi warna di titik polygon
+    glBegin(GL_QUADS);  // back
+    glNormal3f(0.0, 0.0, -1.0);  // face normal
+    glVertex3f(cube_size/2, cube_size/2, -cube_size/2); // atas kiri
+    glVertex3f(cube_size/2, -cube_size/2, -cube_size/2); // atas kanan
+    glVertex3f(-cube_size/2, -cube_size/2, -cube_size/2); // bawah kanan
+    glVertex3f(-cube_size/2, cube_size/2, -cube_size/2); // bawah kiri
+    glEnd();
+
+    glColor3f(0.0f, 0.0f, 1.0f); // memberi warna di titik polygon
+    glBegin(GL_QUADS);  // left
+    glNormal3f(-1.0, 0.0, 0.0);  // face normal
+    glVertex3f(-cube_size/2, cube_size/2, cube_size/2); // atas kiri
+    glVertex3f(-cube_size/2, cube_size/2, -cube_size/2); // atas kanan
+    glVertex3f(-cube_size/2, -cube_size/2, -cube_size/2); // bawah kanan
+    glVertex3f(-cube_size/2, -cube_size/2, cube_size/2); // bawah kiri
+    glEnd();
+
+    glColor3f(0.0f, 1.0f, 0.0f); // memberi warna di titik polygon
+    glBegin(GL_QUADS);  // right
+    glNormal3f(1.0, 0.0, 0.0);  // face normal
+    glVertex3f(cube_size/2, cube_size/2, cube_size/2); // atas kiri
+    glVertex3f(cube_size/2, -cube_size/2, cube_size/2); // atas kanan
+    glVertex3f(cube_size/2, -cube_size/2, -cube_size/2); // bawah kanan
+    glVertex3f(cube_size/2, cube_size/2, -cube_size/2); // bawah kiri
+    glEnd();
+
+    glColor3f(1.0f, 1.0f, 1.0f); // memberi warna di titik polygon
+    glBegin(GL_QUADS);  // top
+    glNormal3f(0.0, 1.0, 0.0);  // face normal
+    glVertex3f(-cube_size/2, cube_size/2, -cube_size/2); // atas kiri
+    glVertex3f(-cube_size/2, cube_size/2, cube_size/2); // atas kanan
+    glVertex3f(cube_size/2, cube_size/2, cube_size/2); // bawah kanan
+    glVertex3f(cube_size/2, cube_size/2, -cube_size/2); // bawah kiri
+    glEnd();
+
+    glColor3f(1.0f, 1.0f, 0.0f); // memberi warna di titik polygon
+    glBegin(GL_QUADS);  // bottom
+    glNormal3f(0.0, -1.0, 0.0);  // face normal
+    glVertex3f(-cube_size/2, -cube_size/2, -cube_size/2); // atas kiri
+    glVertex3f(cube_size/2, -cube_size/2, -cube_size/2); // atas kanan
+    glVertex3f(cube_size/2, -cube_size/2, cube_size/2); // bawah kanan
+    glVertex3f(-cube_size/2, -cube_size/2, cube_size/2); // bawah kiri
+    glEnd();
+
+    glPopMatrix();
+
+} // draw cube function
+
+// draw function
+void draw_func(void)
+{
+    int x = -cube_size, y = -cube_size, z = -cube_size;
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glColor3d(1,0,0);
 
-    glPushMatrix();
-        glTranslated(-2.4,1.2,-6);
-        glRotated(60,1,0,0);
-        glRotated(a,0,0,1);
-        glutSolidSphere(1,slices,stacks);
-    glPopMatrix();
+    // reset transformations
+    glLoadIdentity();
 
-    glPushMatrix();
-        glTranslated(0,1.2,-6);
-        glRotated(60,1,0,0);
-        glRotated(a,0,0,1);
-        glutSolidCone(1,1,slices,stacks);
-    glPopMatrix();
+    // set kamera posisi
+    set_camera();
 
-    glPushMatrix();
-        glTranslated(2.4,1.2,-6);
-        glRotated(60,1,0,0);
-        glRotated(a,0,0,1);
-        glutSolidTorus(0.2,0.8,slices,stacks);
-    glPopMatrix();
+    // apply visualization transformations
+    glRotatef(rot_x, 1.0, 0.0, 0.0); // memutar polygon angle Y
+    glRotatef(rot_y, 0.0, 1.0, 0.0); // memutar polygon angle X
 
-    glPushMatrix();
-        glTranslated(-2.4,-1.2,-6);
-        glRotated(60,1,0,0);
-        glRotated(a,0,0,1);
-        glutWireSphere(1,slices,stacks);
-    glPopMatrix();
-
-    glPushMatrix();
-        glTranslated(0,-1.2,-6);
-        glRotated(60,1,0,0);
-        glRotated(a,0,0,1);
-        glutWireCone(1,1,slices,stacks);
-    glPopMatrix();
-
-    glPushMatrix();
-        glTranslated(2.4,-1.2,-6);
-        glRotated(60,1,0,0);
-        glRotated(a,0,0,1);
-        glutWireTorus(0.2,0.8,slices,stacks);
-    glPopMatrix();
-
+    for(int i = 0; i < 3; ++i) // step through x axis
+        for(int j = 0; j < 3; ++j) // step through y axis
+            for(int k = 0; k < 3; ++k)   // step through z axis
+            {
+                // draw a single cube
+                draw_cube(i, j, k);
+            }
+    // flush opengl commands
     glutSwapBuffers();
 }
 
-
-static void key(unsigned char key, int x, int y)
+// init rendering parameters
+void init_func (void)
 {
-    switch (key)
+    // init parameters
+    cube_size = 30.0; // cuboid size
+    rot_x = 0.0; // view rotation x
+    rot_y = 0.0; // view rotation y
+    crement = 5; // rotation (in/de)crement
+    gap = 5;
+    gap_crement = 3;
+    // initialize cuboid rotations
+
+    // init lighting
+    GLfloat ambient_lighte[4]= {0.2,0.2,0.2,1.0};
+    GLfloat diffuse_light[4]= {0.7,0.7,0.7,1.0};		// color
+    GLfloat specular_light[4]= {1.0, 1.0, 1.0, 1.0};	// brightness
+    GLfloat light_position[4]= {0.0, 50.0, 50.0, 1.0};
+
+    // material brightness capacity
+    GLfloat specularity[4]= {1.0,1.0,1.0,1.0};
+    GLint material_specularity = 60;
+
+    // black background
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+
+    // Gouraud colorization model
+    glShadeModel(GL_SMOOTH);
+
+    // material reflectability
+    glMaterialfv(GL_FRONT,GL_SPECULAR, specularity);
+    // brightness concentration
+    glMateriali(GL_FRONT,GL_SHININESS,material_specularity);
+
+    // activate ambient light
+    glLightModelfv(GL_LIGHT_MODEL_AMBIENT, ambient_lighte);
+
+    // define light parameters
+    glLightfv(GL_LIGHT0, GL_AMBIENT, ambient_lighte);
+    glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuse_light );
+    glLightfv(GL_LIGHT0, GL_SPECULAR, specular_light );
+    glLightfv(GL_LIGHT0, GL_POSITION, light_position );
+
+    // enable changing material color
+    glEnable(GL_COLOR_MATERIAL);
+    // enable lighting
+    glEnable(GL_LIGHTING);
+    glEnable(GL_LIGHT0);
+    // enable depth buffering
+    glEnable(GL_DEPTH_TEST);
+
+    angle=45;
+
+} // init
+
+// specify what's shown in the window
+void load_visualization_parameters(void)
+{
+    // specify projection coordinate system
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+
+    // specify projection perspective
+    gluPerspective(angle,fAspect,0.4,500);
+
+    // init model coordinate system
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+
+    // specify observer and target positions
+    set_camera();
+} // load visualization parameters
+
+void reshape_func(GLsizei w, GLsizei h)
+{
+    // prevents division by zero
+    if ( h == 0 )
+        h = 1;
+
+    // viewport size
+    glViewport(0, 0, w, h);
+
+    // aspect ratio
+    fAspect = (GLfloat)w/(GLfloat)h;
+
+    load_visualization_parameters();
+} // reshape function
+
+void keyboard(unsigned char key, int x, int y)
+{
+    switch(key)
     {
-        case 27 :
-        case 'q':
-            exit(0);
-            break;
+    // Rotasi
+    // INcrement or DEcrement
+    case 'L': // kiri
+    case 'l':
+        rot_y = (rot_y - crement) % 360;
+        break;
 
-        case '+':
-            slices++;
-            stacks++;
-            break;
+    case 'J': // kanan
+    case 'j':
+        rot_y = (rot_y + crement) % 360;
+        break;
 
-        case '-':
-            if (slices>3 && stacks>3)
-            {
-                slices--;
-                stacks--;
-            }
-            break;
+    case 'I': // bawah
+    case 'i':
+        rot_x = (rot_x + crement) % 360;
+        break;
+
+    case 'K': // atas
+    case 'k':
+        rot_x = (rot_x - crement) % 360;
+        break;
+
+    // Perpindahan
+    case 'Q':
+    case 'q':
+        reset_selected_face();
+        z_0 = 2;
+        z_k = 2;
+        break;
+
+    case 'W':
+    case 'w':
+        reset_selected_face();
+        z_0 = 0;
+        z_k = 0;
+        break;
+
+    case 'E':
+    case 'e':
+        reset_selected_face();
+        x_0 = 0;
+        x_k = 0;
+        break;
+
+    case 'A':
+    case 'a':
+        reset_selected_face();
+        x_0 = 2;
+        x_k = 2;
+        break;
+
+    case 'S':
+    case 's':
+        reset_selected_face();
+        y_0 = 2;
+        y_k = 2;
+        break;
+
+    case 'D':
+    case 'd':
+        reset_selected_face();
+        y_0 = 0;
+        y_k = 0;
+        break;
+
+    case 'Z':
+    case 'z':
+        reset_selected_face();
+        x_0 = 1;
+        x_k = 1;
+        break;
+
+    case 'X':
+    case 'x':
+        reset_selected_face();
+        z_0 = 1;
+        z_k = 1;
+        break;
+
+    case 'C':
+    case 'c':
+        reset_selected_face();
+        y_0 = 1;
+        y_k = 1;
+        break;
+
+    // move selected face
+    case 'U': // counter-clockwise
+    case 'u':
+        apply_rotation(-90);
+        break;
+
+    case 'O': // clockwise
+    case 'o':
+        apply_rotation(90);
+        break;
+
+    // end of cube movements
+
+    default:
+        break;
+
     }
 
     glutPostRedisplay();
+
 }
 
-static void idle(void)
+void mouse(int button, int state, int x, int y)
 {
+    if (button == GLUT_LEFT_BUTTON)
+        if (state == GLUT_DOWN)    // Zoom-in
+        {
+            if (angle >= 10)
+                angle -= 5;
+        }
+    if (button == GLUT_RIGHT_BUTTON)
+        if (state == GLUT_DOWN)    // Zoom-out
+        {
+            if (angle <= 130)
+                angle += 5;
+        }
+    load_visualization_parameters();
     glutPostRedisplay();
 }
 
-const GLfloat light_ambient[]  = { 0.0f, 0.0f, 0.0f, 1.0f };
-const GLfloat light_diffuse[]  = { 1.0f, 1.0f, 1.0f, 1.0f };
-const GLfloat light_specular[] = { 1.0f, 1.0f, 1.0f, 1.0f };
-const GLfloat light_position[] = { 2.0f, 5.0f, 5.0f, 0.0f };
-
-const GLfloat mat_ambient[]    = { 0.7f, 0.7f, 0.7f, 1.0f };
-const GLfloat mat_diffuse[]    = { 0.8f, 0.8f, 0.8f, 1.0f };
-const GLfloat mat_specular[]   = { 1.0f, 1.0f, 1.0f, 1.0f };
-const GLfloat high_shininess[] = { 100.0f };
-
-/* Program entry point */
-
-int main(int argc, char *argv[])
+int main(int argc, char **argv)
 {
     glutInit(&argc, argv);
-    glutInitWindowSize(640,480);
-    glutInitWindowPosition(10,10);
-    glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH);
-
-    glutCreateWindow("GLUT Shapes");
-
-    glutReshapeFunc(resize);
-    glutDisplayFunc(display);
-    glutKeyboardFunc(key);
-    glutIdleFunc(idle);
-
-    glClearColor(1,1,1,1);
-    glEnable(GL_CULL_FACE);
-    glCullFace(GL_BACK);
-
-    glEnable(GL_DEPTH_TEST);
-    glDepthFunc(GL_LESS);
-
-    glEnable(GL_LIGHT0);
-    glEnable(GL_NORMALIZE);
-    glEnable(GL_COLOR_MATERIAL);
-    glEnable(GL_LIGHTING);
-
-    glLightfv(GL_LIGHT0, GL_AMBIENT,  light_ambient);
-    glLightfv(GL_LIGHT0, GL_DIFFUSE,  light_diffuse);
-    glLightfv(GL_LIGHT0, GL_SPECULAR, light_specular);
-    glLightfv(GL_LIGHT0, GL_POSITION, light_position);
-
-    glMaterialfv(GL_FRONT, GL_AMBIENT,   mat_ambient);
-    glMaterialfv(GL_FRONT, GL_DIFFUSE,   mat_diffuse);
-    glMaterialfv(GL_FRONT, GL_SPECULAR,  mat_specular);
-    glMaterialfv(GL_FRONT, GL_SHININESS, high_shininess);
-
+    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
+    glutInitWindowSize(400,350);
+    glutInitWindowPosition(0, 0);
+    glutCreateWindow("Graphic Project");
+    glutDisplayFunc(draw_func);
+    glutReshapeFunc(reshape_func);
+    glutMouseFunc(mouse);
+    glutKeyboardFunc(keyboard);
+    init_func();
     glutMainLoop();
-
-    return EXIT_SUCCESS;
 }

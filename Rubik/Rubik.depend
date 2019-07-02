@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1561641116 source:d:\stiki\semester 6\pemrograman grafis\rubik\main.cpp
+1562078632 source:d:\stiki\semester 6\pemrograman grafis\rubik\main.cpp
 	<windows.h>
 	<GL/gl.h>
 	<GL/glut.h>
