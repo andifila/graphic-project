@@ -159,7 +159,7 @@ void draw_cube(int x, int y, int z)
 } // draw cube function
 
 // draw function
-void draw_func(void)
+void display(void)
 {
     int x = -cube_size, y = -cube_size, z = -cube_size;
 
@@ -187,7 +187,7 @@ void draw_func(void)
 }
 
 // init rendering parameters
-void init_func (void)
+void initGL(void)
 {
     // init parameters
     cube_size = 30.0; // cuboid size
@@ -231,7 +231,7 @@ void load_visualization_parameters(void)
     set_camera();
 } // load visualization parameters
 
-void reshape_func(GLsizei w, GLsizei h)
+void reshape(GLsizei w, GLsizei h)
 {
     // prevents division by zero
     if ( h == 0 )
@@ -246,7 +246,7 @@ void reshape_func(GLsizei w, GLsizei h)
     load_visualization_parameters();
 } // reshape function
 
-void keyboard(unsigned char key, int x, int y)
+void keyFunction(unsigned char key, int x, int y)
 {
     switch(key)
     {
@@ -354,7 +354,7 @@ void keyboard(unsigned char key, int x, int y)
     glutPostRedisplay();
 }
 
-void mouse(int button, int state, int x, int y)
+void mouseFunction(int button, int state, int x, int y)
 {
     if (button == GLUT_LEFT_BUTTON)
         if (state == GLUT_DOWN)    // Zoom-in
@@ -379,10 +379,10 @@ int main(int argc, char **argv)
     glutInitWindowSize(400,350);
     glutInitWindowPosition(0, 0);
     glutCreateWindow("Graphic Project");
-    glutDisplayFunc(draw_func);
-    glutReshapeFunc(reshape_func);
-    glutMouseFunc(mouse);
-    glutKeyboardFunc(keyboard);
-    init_func();
+    glutDisplayFunc(display);
+    glutReshapeFunc(reshape);
+    initGL();
+    glutMouseFunc(mouseFunction);
+    glutKeyboardFunc(keyFunction);
     glutMainLoop();
 }
