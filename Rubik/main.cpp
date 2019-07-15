@@ -1,4 +1,3 @@
-#include <windows.h>
 #include <GL/gl.h>
 #include <GL/glut.h>
 #include <vector>
@@ -10,21 +9,26 @@ struct cube_rotate
     GLfloat angle, x, y, z;
 };
 
+// Variabel Float
 GLfloat angle, fAspect, cube_size;
+
+// Variabel Int
 GLint rot_x, rot_y, crement, x_0, x_k, y_0, y_k, z_0, z_k, gap, gap_crement;
+
 //cube_rotate cube_rotations[3][3][3];
 vector<cube_rotate> cube_rotations[3][3][3];
 
 void load_visualization_parameters(void);
 
+// Untuk menjalankan rotasi
 void apply_rotation(GLfloat angle)
 {
-    vector<cube_rotate> face[3][3];
+    vector<cube_rotate> face[4][3];
     int index;
     cube_rotate rotation;
 
-    // copy face to be rotated
-    // apply rotation to face
+    // Menyalin muka yang akan diputar
+    // Menerapkan rotasi ke muka
     for(int i = 0; i < 3; ++i)
         for(int j = 0; j < 3; ++j)
         {
@@ -53,10 +57,11 @@ void apply_rotation(GLfloat angle)
 
         }
 
-    // copy back rotated face
+    // Menyalin kembali muka yang diputar
     for(int i = 0; i < 3; ++i)
         for(int j = 0; j < 3; ++j)
         {
+
             if(x_0 == x_k)
                 cube_rotations[x_k][i][j] = face[i][j];
 
@@ -69,34 +74,37 @@ void apply_rotation(GLfloat angle)
 
 }
 
-// reset face selection parameters
+// Mengatur ulang parameter pemilihan muka
 void reset_selected_face()
 {
+
     x_0 = 0;
     x_k = 2;
     y_0 = 0;
     y_k = 2;
     z_0 = 0;
     z_k = 2;
+
 }
 
 void set_camera()
 {
     // titik awal
-    // (eye/center/up)
+    // Muka/Tengah/Atas
+    //gluLookAt(0,80,200, 0,0,0, 0,1,0);
     gluLookAt(200,200,200, 0,0,0, 0,1,0);
 }
 
-// membuat polygon
+// Membuat polygon
 void draw_cube(int x, int y, int z)
 {
     vector<cube_rotate> lrot = cube_rotations[x][y][z];
     glPushMatrix();
 
-    // translate to final position
+    // Menetapkan posisi akhir
     glTranslatef((x - 1) * cube_size + x * gap, (y - 1) * cube_size + y * gap, (z - 1) * cube_size + z * gap);
 
-    // rotate cube to correct position
+    // Memutar kubus untuk memperbaiki posisi
     for(int i = lrot.size() - 1; i >= 0; --i)
         glRotatef(lrot[i].angle, lrot[i].x, lrot[i].y, lrot[i].z);
 
@@ -156,170 +164,175 @@ void draw_cube(int x, int y, int z)
 
     glPopMatrix();
 
-} // draw cube function
+}
 
-// draw function
 void display(void)
 {
+
     int x = -cube_size, y = -cube_size, z = -cube_size;
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    // reset transformations
+    // Mengatur ulang transformasi
     glLoadIdentity();
 
-    // set kamera posisi
+    // Mengatur posisi kamera
     set_camera();
 
-    // apply visualization transformations
+    // Menerapkan transformasi visual
     glRotatef(rot_x, 1.0, 0.0, 0.0); // memutar polygon angle Y
     glRotatef(rot_y, 0.0, 1.0, 0.0); // memutar polygon angle X
 
-    for(int i = 0; i < 3; ++i) // step through x axis
-        for(int j = 0; j < 3; ++j) // step through y axis
-            for(int k = 0; k < 3; ++k)   // step through z axis
+    for(int i = 0; i < 3; ++i) // Melalui sumbu x
+        for(int j = 0; j < 3; ++j) // Melalui sumbu y
+            for(int k = 0; k < 3; ++k)   // Melalui sumbu z
             {
-                // draw a single cube
+                // Membuat kubus tunggal
                 draw_cube(i, j, k);
             }
-    // flush opengl commands
-    glutSwapBuffers();
+    glutSwapBuffers(); // Untuk menukar layar belakang menjadi layar depan
 }
 
-// init rendering parameters
 void initGL(void)
 {
-    // init parameters
-    cube_size = 30.0; // cuboid size
-    rot_x = 0.0; // view rotation x
-    rot_y = 0.0; // view rotation y
-    crement = 5; // rotation (in/de)crement
+    cube_size = 25.0; // ukuran size per kubus
+    rot_x = 0.0; // Melihat rotasi x
+    rot_y = 0.0; // Melihat rotasi y
+    crement = 5; // Rotasi increment(+) dan decrement(-)
     gap = 5;
     gap_crement = 3;
-    // initialize cuboid rotations
 
-    // Gouraud colorization model
-    glShadeModel(GL_SMOOTH);
-
-    // enable changing material color
+    // Mengaktifkan merubah warna
     glEnable(GL_COLOR_MATERIAL);
-    // enable lighting
-    glEnable(GL_LIGHTING);
-    glEnable(GL_LIGHT0);
-    // enable depth buffering
+
+    // Mengaktifkan kedalaman kubus
     glEnable(GL_DEPTH_TEST);
 
     angle=45;
+}
 
-} // init
-
-// specify what's shown in the window
+// Menentukan apa yang akan ditampilkan
 void load_visualization_parameters(void)
 {
-    // specify projection coordinate system
-    glMatrixMode(GL_PROJECTION);
+    // Koordinat proyeksi
+    glMatrixMode(GL_PROJECTION); // Menerapkan operasi matriks selanjutnya ke tumpukan matriks proyeksi
     glLoadIdentity();
 
-    // specify projection perspective
+    // Perspektif proyeksi
     gluPerspective(angle,fAspect,0.4,500);
 
-    // init model coordinate system
-    glMatrixMode(GL_MODELVIEW);
+    // Sistem koordinat model
+    glMatrixMode(GL_MODELVIEW); // Menerapkan operasi matriks selanjutkan ke tumpukan matriks modelview
     glLoadIdentity();
 
-    // specify observer and target positions
+    // Posisi camera
     set_camera();
-} // load visualization parameters
+}
 
+// Membentuk kembali
 void reshape(GLsizei w, GLsizei h)
 {
-    // prevents division by zero
+    // Mencegah pembagian dengan nol
     if ( h == 0 )
         h = 1;
 
-    // viewport size
-    glViewport(0, 0, w, h);
+    glViewport(0, 0, w, h); // Menentukan lebar,tinggi dimensi window
 
-    // aspect ratio
+    // Ratio
     fAspect = (GLfloat)w/(GLfloat)h;
 
     load_visualization_parameters();
-} // reshape function
+}
 
+// Fungsi Keyboard
 void keyFunction(unsigned char key, int x, int y)
 {
+
     switch(key)
     {
-    // Rotasi
-    // INcrement or DEcrement
-    case 'L': // kiri
-    case 'l':
-        rot_y = (rot_y - crement) % 360;
+
+    case '+':
+        gap += gap_crement;
         break;
 
-    case 'J': // kanan
+    case '-':
+        gap -= gap_crement;
+        break;
+
+/********************************************/
+    // Rotasi kubus
+    // INcrement or DEcrement
+    case 'J': // right
     case 'j':
         rot_y = (rot_y + crement) % 360;
         break;
 
-    case 'I': // bawah
-    case 'i':
-        rot_x = (rot_x + crement) % 360;
+    case 'L': // left
+    case 'l':
+        rot_y = (rot_y - crement) % 360;
         break;
-
-    case 'K': // atas
+/********************************************/
+    case 'K': // up
     case 'k':
         rot_x = (rot_x - crement) % 360;
         break;
 
-    // Perpindahan
-    case 'Q':
-    case 'q':
-        reset_selected_face();
-        z_0 = 2;
-        z_k = 2;
+    case 'I': // down
+    case 'i':
+        rot_x = (rot_x + crement) % 360;
         break;
-
-    case 'W':
-    case 'w':
-        reset_selected_face();
-        z_0 = 0;
-        z_k = 0;
-        break;
-
-    case 'E':
-    case 'e':
-        reset_selected_face();
-        x_0 = 0;
-        x_k = 0;
-        break;
-
+/********************************************/
+    // Pergerakkan kubus
+    // Sumbu X
     case 'A':
     case 'a':
-        reset_selected_face();
-        x_0 = 2;
-        x_k = 2;
-        break;
-
-    case 'S':
-    case 's':
-        reset_selected_face();
-        y_0 = 2;
-        y_k = 2;
-        break;
-
-    case 'D':
-    case 'd':
         reset_selected_face();
         y_0 = 0;
         y_k = 0;
         break;
 
-    case 'Z':
-    case 'z':
+    case 'S':
+    case 's':
+        reset_selected_face();
+        y_0 = 1;
+        y_k = 1;
+        break;
+
+    case 'D':
+    case 'd':
+        reset_selected_face();
+        y_0 = 2;
+        y_k = 2;
+        break;
+/********************************************/
+    // Sumbu Y
+    case 'Q':
+    case 'q':
+        reset_selected_face();
+        x_0 = 0;
+        x_k = 0;
+        break;
+
+    case 'W':
+    case 'w':
         reset_selected_face();
         x_0 = 1;
         x_k = 1;
+        break;
+
+    case 'E':
+    case 'e':
+        reset_selected_face();
+        x_0 = 2;
+        x_k = 2;
+        break;
+/********************************************/
+    // Sumbu Z
+    case 'C':
+    case 'c':
+        reset_selected_face();
+        z_0 = 0;
+        z_k = 0;
         break;
 
     case 'X':
@@ -329,47 +342,53 @@ void keyFunction(unsigned char key, int x, int y)
         z_k = 1;
         break;
 
-    case 'C':
-    case 'c':
+    case 'Z':
+    case 'z':
         reset_selected_face();
-        y_0 = 1;
-        y_k = 1;
+        z_0 = 2;
+        z_k = 2;
+        break;
+/********************************************/
+    // Memindahkan muka yang dipilih
+    case 'O': // Searah jarum jam
+    case 'o':
+        apply_rotation(90);
         break;
 
-    // move selected face
-    case 'U': // counter-clockwise
+    case 'U': // Berlawanan arah jam
     case 'u':
         apply_rotation(-90);
         break;
 
-    case 'O': // clockwise
-    case 'o':
-        apply_rotation(90);
-        break;
-    // end of cube movements
-
     default:
         break;
     }
-    glutPostRedisplay();
+    glutPostRedisplay(); // Menampilkan layar kembali
 }
 
+// Fungsi mouse
 void mouseFunction(int button, int state, int x, int y)
 {
     if (button == GLUT_LEFT_BUTTON)
-        if (state == GLUT_DOWN)    // Zoom-in
+        if (state == GLUT_DOWN)    // Perbesar
         {
-            if (angle >= 10)
+            if (angle >= 25)
                 angle -= 5;
         }
     if (button == GLUT_RIGHT_BUTTON)
-        if (state == GLUT_DOWN)    // Zoom-out
+        if (state == GLUT_DOWN)    // Perkecil
         {
-            if (angle <= 130)
+            if (angle <= 125)
                 angle += 5;
         }
     load_visualization_parameters();
     glutPostRedisplay();
+}
+
+void timer(int value)
+{
+    glutPostRedisplay();
+    glutTimerFunc(15, timer, 0);
 }
 
 int main(int argc, char **argv)
@@ -382,6 +401,7 @@ int main(int argc, char **argv)
     glutDisplayFunc(display);
     glutReshapeFunc(reshape);
     initGL();
+    glutTimerFunc(0, timer, 0);
     glutMouseFunc(mouseFunction);
     glutKeyboardFunc(keyFunction);
     glutMainLoop();
