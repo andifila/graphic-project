@@ -109,7 +109,7 @@ void draw_cube(int x, int y, int z)
         glRotatef(lrot[i].angle, lrot[i].x, lrot[i].y, lrot[i].z);
 
     glColor3f(1.0f, 0.0f, 0.0f); // memberi warna di titik polygon
-    glBegin(GL_QUADS);  // front
+    glBegin(GL_QUADS);  // depan
     glNormal3f(0.0, 0.0, 1.0);  // face normal
     glVertex3f(cube_size/2, cube_size/2, cube_size/2); // atas kiri
     glVertex3f(-cube_size/2, cube_size/2, cube_size/2); // atas kanan
@@ -118,7 +118,7 @@ void draw_cube(int x, int y, int z)
     glEnd();
 
     glColor3f(1.0f, 0.5f, 0.0f); // memberi warna di titik polygon
-    glBegin(GL_QUADS);  // back
+    glBegin(GL_QUADS);  // belakang
     glNormal3f(0.0, 0.0, -1.0);  // face normal
     glVertex3f(cube_size/2, cube_size/2, -cube_size/2); // atas kiri
     glVertex3f(cube_size/2, -cube_size/2, -cube_size/2); // atas kanan
@@ -127,7 +127,7 @@ void draw_cube(int x, int y, int z)
     glEnd();
 
     glColor3f(0.0f, 0.0f, 1.0f); // memberi warna di titik polygon
-    glBegin(GL_QUADS);  // left
+    glBegin(GL_QUADS);  // kiri
     glNormal3f(-1.0, 0.0, 0.0);  // face normal
     glVertex3f(-cube_size/2, cube_size/2, cube_size/2); // atas kiri
     glVertex3f(-cube_size/2, cube_size/2, -cube_size/2); // atas kanan
@@ -136,7 +136,7 @@ void draw_cube(int x, int y, int z)
     glEnd();
 
     glColor3f(0.0f, 1.0f, 0.0f); // memberi warna di titik polygon
-    glBegin(GL_QUADS);  // right
+    glBegin(GL_QUADS);  // kanan
     glNormal3f(1.0, 0.0, 0.0);  // face normal
     glVertex3f(cube_size/2, cube_size/2, cube_size/2); // atas kiri
     glVertex3f(cube_size/2, -cube_size/2, cube_size/2); // atas kanan
@@ -145,7 +145,7 @@ void draw_cube(int x, int y, int z)
     glEnd();
 
     glColor3f(1.0f, 1.0f, 1.0f); // memberi warna di titik polygon
-    glBegin(GL_QUADS);  // top
+    glBegin(GL_QUADS);  // atas
     glNormal3f(0.0, 1.0, 0.0);  // face normal
     glVertex3f(-cube_size/2, cube_size/2, -cube_size/2); // atas kiri
     glVertex3f(-cube_size/2, cube_size/2, cube_size/2); // atas kanan
@@ -154,7 +154,7 @@ void draw_cube(int x, int y, int z)
     glEnd();
 
     glColor3f(1.0f, 1.0f, 0.0f); // memberi warna di titik polygon
-    glBegin(GL_QUADS);  // bottom
+    glBegin(GL_QUADS);  // bawah
     glNormal3f(0.0, -1.0, 0.0);  // face normal
     glVertex3f(-cube_size/2, -cube_size/2, -cube_size/2); // atas kiri
     glVertex3f(cube_size/2, -cube_size/2, -cube_size/2); // atas kanan
